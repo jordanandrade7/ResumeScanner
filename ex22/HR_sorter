@@ -1,0 +1,48 @@
+#!/bin/bash
+
+# Put your code here
+# You may only use the following external programs: ls, echo, awk, cat, grep, sort, wc, bc
+
+keywords=""
+weights=0
+declare -A keywordweight
+regex='^[0-9]+([.][0-9]+)?$'
+
+for i in `cat input.txt`
+do
+	if [[ $i =~ $regex ]]
+	then
+	weights=$i
+	else
+		if [[ $keywords = "" ]] 
+		then
+		keywords=$i
+		else
+		keywords+=" "$i
+		fi
+	fi
+
+if [[ $weights != 0 && $keywords != "" ]]
+then
+keywordweight[$keywords]=$weights
+keywords=""
+weights=0
+fi
+done
+
+cd submissions
+
+for resume in *;
+do
+totalscores=0
+	for j in "${!keywordweight[@]}";
+	do
+	p=`grep -o -i "$j" $resume | wc -l`
+	ts=0
+	ts=`echo $p*${keywordweight[$j]} | bc -l`
+	totalscores=`echo $totalscores+$ts | bc -l`
+	done
+
+totalscores=`echo $totalscores | awk '{printf("%g",$1)}'`
+echo $totalscores $resume
+done | sort -nr
